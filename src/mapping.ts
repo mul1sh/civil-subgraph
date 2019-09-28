@@ -22,7 +22,7 @@ import {
   _ChallengeSucceeded,
   _RewardClaimed
 } from "../generated/Contract/Contract"
-import { ExampleEntity } from "../generated/schema"
+import { ExampleEntity, NewsroomApplication } from "../generated/schema"
 
 export function handle_AppealRequested(event: _AppealRequested): void {
   // Entities can be loaded from the store using a string ID; this ID
@@ -113,7 +113,23 @@ export function handle_GovernmentTransfered(
   event: _GovernmentTransfered
 ): void {}
 
-export function handle_Application(event: _Application): void {}
+export function handle_Application(event: _Application): void {
+
+  let newApplication = NewsroomApplication.load(event.transaction.from.toHex())
+
+  if (newApplication == null) {
+    newApplication = new NewsroomApplication(event.transaction.from.toHex())
+    newApplication.applicationData = "Null Application"
+  }
+
+  newApplication.listingAddress = event.params.listingAddress
+  newApplication.applicantAddress = event.params.applicant
+  newApplication.applicationEndDate = event.params.appEndDate
+  newApplication.depositPaid = event.params.deposit
+  newApplication.applicationData = event.params.data
+
+  newApplication.save()
+}
 
 export function handle_Challenge(event: _Challenge): void {}
 
