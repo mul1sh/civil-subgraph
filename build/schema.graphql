@@ -1,16 +1,85 @@
-type ExampleEntity @entity {
-  id: ID!
-  count: BigInt!
-  listingAddress: Bytes! # address
-  challengeID: BigInt! # uint256
-}
-
-
-type NewsroomApplication @entity {
+type Application @entity {
   id: ID!
   applicantAddress: Bytes! # address
   listingAddress: Bytes! # address
   depositPaid: BigInt
+  depositPaidShortForm: BigInt
   applicationEndDate: BigInt
   applicationData: String
+}
+
+type ApplicationsWhiteListed @entity {
+  id: ID!
+  listingAddress: Bytes # address
+}
+
+type ApplicationsRemoved @entity {
+  id: ID!
+  listingAddress: Bytes # address
+}
+
+type Challenge @entity {
+  id: ID!
+  listingAddress: Bytes! # address
+  challengeID: BigInt! # address
+  challengeData: String
+  commitEndDate: BigInt
+  revealEndDate: BigInt
+  challenger: Bytes! # address
+}
+
+type ChallengeFail @entity {
+  id: ID!
+  listingAddress: Bytes! # address
+  challengeID: BigInt! # address
+  rewardPool: BigInt
+  totalTokens: BigInt
+}
+
+type ChallengeSuccess @entity {
+  id: ID!
+  listingAddress: Bytes! # address
+  challengeID: BigInt! # address
+  rewardPool: BigInt
+  totalTokens: BigInt
+}
+
+type Deposit @entity {
+  id: ID!
+  count: BigInt!
+  owner: Bytes! # address
+  listingAddress: Bytes # address
+  amountAdded: BigInt
+  newTotal: BigInt
+}
+
+type Withdrawal @entity {
+  id: ID!
+  count: BigInt!
+  owner: Bytes! # address
+  listingAddress: Bytes # address
+  amountWithdrawn: BigInt
+  newTotal: BigInt
+}
+
+type GovernmentTransfer @entity {
+  id: ID!
+  newAddress: Bytes # address
+}
+
+type ListingsRemoved @entity {
+  id: ID!
+  listingAddress: Bytes # address
+}
+
+type ListingsWithdrawal @entity {
+  id: ID!
+  listingAddress: Bytes # address
+}
+
+type RewardClaim @entity {
+  id: ID!
+  challengeID: BigInt! 
+  reward: BigInt!
+  voter: Bytes! # address
 }

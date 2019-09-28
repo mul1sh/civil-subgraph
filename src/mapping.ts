@@ -1,13 +1,5 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import {
-  Contract,
-  _AppealRequested,
-  _AppealGranted,
-  _FailedChallengeOverturned,
-  _SuccessfulChallengeOverturned,
-  _GrantedAppealChallenged,
-  _GrantedAppealOverturned,
-  _GrantedAppealConfirmed,
   _GovernmentTransfered,
   _Application,
   _Challenge,
@@ -22,135 +14,200 @@ import {
   _ChallengeSucceeded,
   _RewardClaimed
 } from "../generated/Contract/Contract"
-import { ExampleEntity, NewsroomApplication } from "../generated/schema"
-
-export function handle_AppealRequested(event: _AppealRequested): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
-
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
-
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
-
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
-
-  // Entity fields can be set based on event parameters
-  entity.listingAddress = event.params.listingAddress
-  entity.challengeID = event.params.challengeID
-
-  // Entities can be written to the store with `.save()`
-  entity.save()
-
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
-
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.name(...)
-  // - contract.appealChallengeCanBeResolved(...)
-  // - contract.challengeGrantedAppeal(...)
-  // - contract.civilVoting(...)
-  // - contract.appealCanBeResolved(...)
-  // - contract.government(...)
-  // - contract.challengeCanBeResolved(...)
-  // - contract.isWhitelisted(...)
-  // - contract.appWasMade(...)
-  // - contract.challengeRequestAppealExpiries(...)
-  // - contract.listings(...)
-  // - contract.challengeExists(...)
-  // - contract.challenges(...)
-  // - contract.tokenClaims(...)
-  // - contract.voterReward(...)
-  // - contract.appeals(...)
-  // - contract.challenge(...)
-  // - contract.determineReward(...)
-  // - contract.canBeWhitelisted(...)
-  // - contract.parameterizer(...)
-  // - contract.token(...)
-  // - contract.voting(...)
-}
-
-export function handle_AppealGranted(event: _AppealGranted): void {}
-
-export function handle_FailedChallengeOverturned(
-  event: _FailedChallengeOverturned
-): void {}
-
-export function handle_SuccessfulChallengeOverturned(
-  event: _SuccessfulChallengeOverturned
-): void {}
-
-export function handle_GrantedAppealChallenged(
-  event: _GrantedAppealChallenged
-): void {}
-
-export function handle_GrantedAppealOverturned(
-  event: _GrantedAppealOverturned
-): void {}
-
-export function handle_GrantedAppealConfirmed(
-  event: _GrantedAppealConfirmed
-): void {}
+import { 
+  Application, 
+  Deposit, 
+  Withdrawal, 
+  ApplicationsWhiteListed, 
+  ApplicationsRemoved,
+  ListingsRemoved,
+  ListingsWithdrawal,
+  GovernmentTransfer,
+  Challenge,
+  ChallengeFail,
+  ChallengeSuccess,
+  RewardClaim
+} from "../generated/schema"
 
 export function handle_GovernmentTransfered(
   event: _GovernmentTransfered
-): void {}
+): void {
+  let govtTransffered = GovernmentTransfer.load(event.transaction.from.toHex())
+  if (govtTransffered == null) {
+    govtTransffered = new GovernmentTransfer(event.transaction.from.toHex())
+  }
+  govtTransffered.newAddress = event.params.newGovernment
+  govtTransffered.save()
+}
 
 export function handle_Application(event: _Application): void {
 
-  let newApplication = NewsroomApplication.load(event.transaction.from.toHex())
+  let application = Application.load(event.transaction.from.toHex())
 
-  if (newApplication == null) {
-    newApplication = new NewsroomApplication(event.transaction.from.toHex())
-    newApplication.applicationData = "Null Application"
+  if (application == null) {
+    application = new Application(event.transaction.from.toHex())
+    application.applicationData = "Null Application"
   }
 
-  newApplication.listingAddress = event.params.listingAddress
-  newApplication.applicantAddress = event.params.applicant
-  newApplication.applicationEndDate = event.params.appEndDate
-  newApplication.depositPaid = event.params.deposit
-  newApplication.applicationData = event.params.data
+  application.listingAddress = event.params.listingAddress
+  application.applicantAddress = event.params.applicant
+  application.applicationEndDate = event.params.appEndDate
+  application.depositPaid = event.params.deposit
+  // application.depositPaidShortForm =  event.params.deposit.div(new BigInt(10000000000000000000))
+  application.applicationData = event.params.data
 
-  newApplication.save()
+  application.save()
 }
 
-export function handle_Challenge(event: _Challenge): void {}
 
-export function handle_Deposit(event: _Deposit): void {}
+export function handle_Deposit(event: _Deposit): void {
 
-export function handle_Withdrawal(event: _Withdrawal): void {}
+  let deposit = Deposit.load(event.transaction.from.toHex())
+
+  if (deposit == null) {
+    deposit = new Deposit(event.transaction.from.toHex())
+    deposit.count =  deposit.count.plus(BigInt.fromI32(1))
+  }
+
+  deposit.owner = event.params.owner
+  deposit.newTotal = event.params.newTotal
+  deposit.listingAddress = event.params.listingAddress
+  deposit.amountAdded = event.params.added
+
+  deposit.save()
+
+}
+
+export function handle_Withdrawal(event: _Withdrawal): void {
+
+  let withdrawal = Withdrawal.load(event.transaction.from.toHex())
+
+  if (withdrawal == null) {
+    withdrawal = new Withdrawal(event.transaction.from.toHex())
+    withdrawal.count =  withdrawal.count.plus(BigInt.fromI32(1))
+  }
+
+  withdrawal.owner = event.params.owner
+  withdrawal.newTotal = event.params.newTotal
+  withdrawal.listingAddress = event.params.listingAddress
+  withdrawal.amountWithdrawn = event.params.withdrew
+
+  withdrawal.save()
+}
 
 export function handle_ApplicationWhitelisted(
   event: _ApplicationWhitelisted
-): void {}
+): void {
+  let appsWhitelisted = ApplicationsWhiteListed.load(event.transaction.from.toHex())
 
-export function handle_ApplicationRemoved(event: _ApplicationRemoved): void {}
+  if (appsWhitelisted == null) {
+    appsWhitelisted = new ApplicationsWhiteListed(event.transaction.from.toHex())
+  }
+  appsWhitelisted.listingAddress = event.params.listingAddress
 
-export function handle_ListingRemoved(event: _ListingRemoved): void {}
+  appsWhitelisted.save()
+}
 
-export function handle_ListingWithdrawn(event: _ListingWithdrawn): void {}
+export function handle_ApplicationRemoved(event: _ApplicationRemoved): void {
+  let appsRemoved = ApplicationsRemoved.load(event.transaction.from.toHex())
 
-export function handle_TouchAndRemoved(event: _TouchAndRemoved): void {}
+  if (appsRemoved == null) {
+    appsRemoved = new ApplicationsRemoved(event.transaction.from.toHex())
+  }
 
-export function handle_ChallengeFailed(event: _ChallengeFailed): void {}
+  appsRemoved.listingAddress = event.params.listingAddress
 
-export function handle_ChallengeSucceeded(event: _ChallengeSucceeded): void {}
+  appsRemoved.save()
+}
 
-export function handle_RewardClaimed(event: _RewardClaimed): void {}
+export function handle_ListingRemoved(event: _ListingRemoved): void {
+
+  let listingsRemoved = ListingsRemoved.load(event.transaction.from.toHex())
+
+  if (listingsRemoved == null) {
+    listingsRemoved = new ListingsRemoved(event.transaction.from.toHex())
+  }
+  listingsRemoved.listingAddress = event.params.listingAddress
+
+  listingsRemoved.save()
+}
+
+export function handle_ListingWithdrawn(event: _ListingWithdrawn): void {
+
+  let listingsWithdrawn = ListingsWithdrawal.load(event.transaction.from.toHex())
+
+  if (listingsWithdrawn == null) {
+    listingsWithdrawn = new ListingsWithdrawal(event.transaction.from.toHex())
+  }
+
+  listingsWithdrawn.listingAddress = event.params.listingAddress
+
+  listingsWithdrawn.save()
+}
+
+export function handle_Challenge(event: _Challenge): void {
+
+  let challenge = Challenge.load(event.transaction.from.toHex())
+
+  if (challenge == null) {
+    challenge = new Challenge(event.transaction.from.toHex())
+  }
+
+  challenge.listingAddress = event.params.listingAddress
+  challenge.challengeID = event.params.challengeID
+  challenge.challengeData = event.params.data
+  challenge.commitEndDate = event.params.commitEndDate
+  challenge.revealEndDate = event.params.revealEndDate
+  challenge.challenger = event.params.challenger
+
+  challenge.save()
+}
+
+export function handle_ChallengeFailed(event: _ChallengeFailed): void {
+
+  let challengeFail = ChallengeFail.load(event.transaction.from.toHex())
+
+  if (challengeFail == null) {
+    challengeFail = new ChallengeFail(event.transaction.from.toHex())
+  }
+
+  challengeFail.listingAddress = event.params.listingAddress
+  challengeFail.challengeID = event.params.challengeID
+  challengeFail.rewardPool = event.params.rewardPool
+  challengeFail.totalTokens = event.params.totalTokens
+
+  challengeFail.save()
+
+}
+
+export function handle_ChallengeSucceeded(event: _ChallengeSucceeded): void {
+
+  let challengeSuccess = ChallengeSuccess.load(event.transaction.from.toHex())
+
+  if (challengeSuccess == null) {
+    challengeSuccess= new ChallengeSuccess(event.transaction.from.toHex())
+  }
+
+  challengeSuccess.listingAddress = event.params.listingAddress
+  challengeSuccess.challengeID = event.params.challengeID
+  challengeSuccess.rewardPool = event.params.rewardPool
+  challengeSuccess.totalTokens = event.params.totalTokens
+
+  challengeSuccess.save()
+}
+
+export function handle_RewardClaimed(event: _RewardClaimed): void {
+
+  let rewardClaim = RewardClaim.load(event.transaction.from.toHex())
+
+  if (rewardClaim == null) {
+    rewardClaim = new RewardClaim(event.transaction.from.toHex())
+  }
+
+  rewardClaim.challengeID = event.params.challengeID
+  rewardClaim.reward = event.params.reward
+  rewardClaim.voter = event.params.voter
+
+  rewardClaim.save()
+
+}
